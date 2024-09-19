@@ -1,5 +1,3 @@
-Absolutely! I can convert the information you provided into a well-formatted README file:
-
 ## ProductFinder API
 
 ### Project Overview
