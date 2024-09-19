@@ -29,14 +29,15 @@
    git clone <repository-url>
    cd ProductFinder
 
-2. Restore NuGet Packages:
+2. **Restore NuGet Packages:**
 
-bash
-Kodu kopyala
+```bash
 dotnet restore
-Update Connection String:
 
-Ensure the connection string in ProductDbContext is correctly set up for your SQL Server instance.
+
+3. **Update Connection String:**
+
+- **Ensure the connection string in ProductDbContext is correctly set up for your SQL Server instance.
 
 Apply Migrations:
 
