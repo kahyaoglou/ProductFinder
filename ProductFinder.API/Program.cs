@@ -11,6 +11,7 @@ using ProductFinder.DataAccess.Concrete;
 using ProductFinder.Entities;
 using System.Text;
 using ProductFinder.Business.Validators;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +76,15 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddControllers()
     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Program>());
 
+// Serilog yapýlandýrmasýný appsettings.json dosyasýndan okuma
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+// Uygulama için Serilog'u kullanacak þekilde yapýlandýr
+builder.Host.UseSerilog();
+
 builder.Services.AddSingleton<IValidator<Product>, ProductValidator>();
 
 builder.Services.AddSingleton<IProductService, ProductManager>();
@@ -131,3 +141,6 @@ app.UseEndpoints(endpoints => { endpoints.MapControllers(); }); //Controller kul
 app.MapRazorPages();
 
 app.Run();
+
+// Uygulama kapanýrken Serilog'u kapat
+Log.CloseAndFlush();

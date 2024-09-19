@@ -6,6 +6,7 @@ using ProductFinder.Business.Abstract;
 using ProductFinder.Business.Concrete;
 using ProductFinder.Business.Validators;
 using ProductFinder.Entities;
+using Serilog;
 
 namespace ProductFinder.API.Controller
 {
@@ -23,8 +24,17 @@ namespace ProductFinder.API.Controller
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            Log.Information("Product list request received.");
             var products = await _productService.GetAllProducts();
-            return Ok(products);
+
+            if (products != null)
+            {
+                Log.Information("Product list retrieved successfully.");
+                return Ok(products);
+            }
+
+            Log.Warning("No products found.");
+            return NotFound();
         }
 
         //Api'den id alan,
@@ -34,11 +44,16 @@ namespace ProductFinder.API.Controller
         [Authorize]
         public async Task<IActionResult> Get(int id)
         {
+            Log.Information("Product details request received for ProductId: {ProductId}", id);
             var product = await _productService.GetProductById(id);
+
             if (product != null)
             {
+                Log.Information("Product retrieved successfully: {@Product}", product);
                 return Ok(product);
             }
+
+            Log.Warning("Product with Id: {ProductId} not found.", id);
             return NotFound();
         }
 
@@ -48,13 +63,17 @@ namespace ProductFinder.API.Controller
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Product product)
         {
+            Log.Information("Product creation request received: {@Product}", product);
+
             var validationResult = new ProductValidator().Validate(product);
             if (!validationResult.IsValid)
             {
+                Log.Warning("Product validation failed: {@ValidationErrors}", validationResult.Errors);
                 return BadRequest(validationResult.Errors);
             }
 
             var createdProduct = await _productService.CreateProduct(product);
+            Log.Information("Product created successfully: {@Product}", createdProduct);
             return CreatedAtAction("Get", new { id = createdProduct.Id }, createdProduct); //201 + Data
         }
 
@@ -65,17 +84,25 @@ namespace ProductFinder.API.Controller
         [Authorize]
         public async Task<IActionResult> Put([FromBody] Product product)
         {
+            Log.Information("Product update request received for ProductId: {ProductId}", product.Id);
+
             var validationResult = new ProductValidator().Validate(product);
             if (!validationResult.IsValid)
             {
+                Log.Warning("Product update validation failed: {@ValidationErrors}", validationResult.Errors);
                 return BadRequest(validationResult.Errors);
             }
 
             if (await _productService.GetProductById(product.Id) != null)
             {
-                return Ok(await _productService.UpdateProduct(product)); //200 + Data
+                Log.Information("Product with Id: {ProductId} found. Updating product...", product.Id);
+                var updatedProduct = await _productService.UpdateProduct(product);
+                Log.Information("Product updated successfully: {@Product}", updatedProduct);
+                return Ok(updatedProduct); // 200 + Data
             }
-            return NotFound(); //404
+
+            Log.Warning("Product with Id: {ProductId} not found for update.", product.Id);
+            return NotFound(); // 404
         }
 
         //Api'den id alan,
@@ -85,12 +112,17 @@ namespace ProductFinder.API.Controller
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
+            Log.Information("Product deletion request received for ProductId: {ProductId}", id);
+
             if (await _productService.GetProductById(id) != null)
             {
                 await _productService.DeleteProduct(id);
-                return Ok(); //200
+                Log.Information("Product with Id: {ProductId} deleted successfully.", id);
+                return Ok(); // 200
             }
-            return NotFound(); //404
+
+            Log.Warning("Product with Id: {ProductId} not found for deletion.", id);
+            return NotFound(); // 404
         }
     }
 }
