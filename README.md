@@ -125,4 +125,4 @@ This project is licensed under the MIT License. Refer to the `LICENSE` file for 
 
 ### Contact
 
-For inquiries or support, please contact your-email@example.com.
+For inquiries or support, please contact furkaneralpkahyaoglu@gmail.com.
