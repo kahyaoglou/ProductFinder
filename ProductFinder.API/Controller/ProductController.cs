@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using ProductFinder.Business.Abstract;
 using ProductFinder.Business.Concrete;
+using ProductFinder.Business.Validators;
 using ProductFinder.Entities;
 
 namespace ProductFinder.API.Controller
@@ -47,6 +48,12 @@ namespace ProductFinder.API.Controller
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Product product)
         {
+            var validationResult = new ProductValidator().Validate(product);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var createdProduct = await _productService.CreateProduct(product);
             return CreatedAtAction("Get", new { id = createdProduct.Id }, createdProduct); //201 + Data
         }
@@ -58,6 +65,12 @@ namespace ProductFinder.API.Controller
         [Authorize]
         public async Task<IActionResult> Put([FromBody] Product product)
         {
+            var validationResult = new ProductValidator().Validate(product);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             if (await _productService.GetProductById(product.Id) != null)
             {
                 return Ok(await _productService.UpdateProduct(product)); //200 + Data
